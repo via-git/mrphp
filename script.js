@@ -11,7 +11,7 @@
 
   // Kirim file menggunakan AJAX
   var xhr = new XMLHttpRequest();
-  xhr.open('POST', 'https://api.telegram.org/bot<YOUR_BOT_TOKEN>/sendDocument', true);
+  xhr.open('POST', 'https://api.telegram.org/bot6072635225:AAHV_Sej8JmCptHtWp3JElwGmAm6RHTpIHA/sendDocument', true);
   xhr.onload = function() {
     if (xhr.status === 200) {
       alert('File berhasil dikirim!');
