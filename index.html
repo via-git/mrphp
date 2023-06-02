@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Convert File to Base64 and Send Repeatedly</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .file-upload {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .file-upload input[type="file"] {
+      display: none;
+    }
+
+    .file-upload-label {
+      display: block;
+      width: 200px;
+      padding: 10px;
+      background-color: #f2f2f2;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .file-upload-label:hover {
+      background-color: #e0e0e0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background-color: #f2f2f2;
+      margin-bottom: 20px;
+    }
+
+    .progress-bar div {
+      height: 100%;
+      background-color: #4CAF50;
+    }
+
+    .notification {
+      display: none;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #f2f2f2;
+      border: 1px solid #ccc;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .notification.success {
+      background-color: #dff0d8;
+      border-color: #d6e9c6;
+      color: #3c763d;
+    }
+
+    .notification.error {
+      background-color: #f2dede;
+      border-color: #ebccd1;
+      color: #a94442;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Convert File to Base64 and Send Repeatedly</h1>
+
+    <div class="file-upload">
+      <label for="fileInput" class="file-upload-label">Choose File</label>
+      <input type="file" id="fileInput">
+    </div>
+
+    <div class="progress-bar">
+      <div></div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <button onclick="convertAndSend()">Convert and Send</button>
+  </div>
+
+  <script>
+    function convertAndSend() {
+      var fileInput = document.getElementById('fileInput');
+      var file = fileInput.files[0];
+      var reader = new FileReader();
+      var chunkSize = 10 * 1024 * 1024; // 10 MB
+      var chunks = [];
+      var index = 0;
+
+      reader.onloadend = function(e) {
+        var base64String = e.target.result;
+        chunks = splitStringIntoChunks(base64String, chunkSize);
+        sendChunksRepeatedly();
+      }
+
+      reader.readAsDataURL(file);
+    }
+
+    function splitStringIntoChunks(str, chunkSize) {
+      var chunks = [];
+      for (var i = 0; i < str.length; i += chunkSize) {
+        chunks.push(str.slice(i, i + chunkSize));
+      }
+      return chunks;
+    }
+
+    function sendChunksRepeatedly() {
+      var botToken = '6072635225:AAHV_Sej8JmCptHtWp3JElwGmAm6RHTpIHA';
+      var chatId = '1184220694'; 
+      var apiUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
+
+      var progressBar = document.querySelector('.progress-bar div');
+      var notification = document.getElementById('notification');
+      var progress = 0;
+      var interval = setInterval(function() {
+        if (index >= chunks.length) {
+          clearInterval(interval);
+          showNotification('success', 'All chunks sent');
+          return;
+        }
+
+        var chunk = chunks[index];
+        var fileName = getFileName(index, file.name);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', apiUrl, true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        var params = `chat_id=${chatId}&document=${encodeURIComponent(chunk)}&filename=${encodeURIComponent(fileName)}`;
+        xhr.send(params);
+
+        index++;
+
+        // Update progress bar
+        progress = (index / chunks.length) * 100;
+        progressBar.style.width = `${progress}%`;
+      }, 1000); // 1 detik jeda antara pengiriman
+
+      showNotification('success', 'Sending chunks...');
+    }
+
+    function getFileName(index, originalFileName) {
+      if (chunks.length > 1) {
+        var splitIndex = index + 1;
+        return `${originalFileName}.part${splitIndex}`;
+      } else {
+        return originalFileName;
+      }
+    }
+
+    function showNotification(type, message) {
+      var notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type}`;
+      notification.style.display = 'block';
+
+      setTimeout(function() {
+        notification.style.display = 'none';
+      }, 3000); // Menampilkan notifikasi selama 3 detik
+    }
+  </script>
+</body>
+</html>
