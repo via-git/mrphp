@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload dan Kirim File ke Telegram Bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #upload-form {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        #file-label {
+            display: inline-block;
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #submit-button {
+            display: none;
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #file-name {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        #progress-bar {
+            width: 100%;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        #progress-bar span {
+            display: block;
+            height: 10px;
+            background-color: #3498db;
+            width: 0;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload dan Kirim File ke Telegram Bot</h1>
+
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="file-input" />
+        <label for="file-input" id="file-label">Pilih File</label>
+        <button type="submit" id="submit-button">Kirim</button>
+    </form>
+
+    <div id="file-name"></div>
+
+    <div id="progress-bar">
+        <span></span>
+    </div>
+
+    <script>
+        document.getElementById('file-input').addEventListener('change', function(event) {
+            var file = event.target.files[0];
+            var fileName = file.name;
+
+            document.getElementById('file-name').textContent = 'File yang dipilih: ' + fileName;
+            document.getElementById('submit-button').style.display = 'block';
+        });
+
+        document.getElementById('upload-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var fileInput = document.getElementById('file-input');
+            var file = fileInput.files[0];
+
+            if (file) {
+                var formData = new FormData();
+                formData.append('chat_id', '1184220694');
+                formData.append('document', file);
+
+                // Ganti `BOT_TOKEN` dengan token Telegram Bot Anda
+                var botToken = '6072635225:AAHV_Sej8JmCptHtWp3JElwGmAm6RHTpIHA';
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://api.telegram.org/bot' + botToken + '/sendDocument');
+                xhr.upload.addEventListener('progress', function(event) {
+                    if (event.lengthComputable) {
+                        var percent = (event.loaded / event.total) * 100;
+                        document.getElementById('progress-bar').querySelector('span').style.width = percent + '%';
+                    }
+                });
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        alert('File berhasil dikirim ke Telegram Bot!');
+                        fileInput.value = '';
+                        document.getElementById('file-name').textContent = '';
+                        document.getElementById('submit-button').style.display = 'none';
+                        document.getElementById('progress-bar').querySelector('span').style.width = '0';
+                    } else {
+                        alert('Terjadi kesalahan saat mengirim file.');
+                    }
+                };
+                xhr.send(formData);
+            }
+        });
+    </script>
+</body>
+</html>
